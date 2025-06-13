@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>美团展示中心（上海）导览地图导航</title>
+    <style>
+        /* 弹窗样式 */
+        #map-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .map-option {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导览图 -->
+    <img src="map.png" alt="导览图" usemap="#tourMap">
+    
+    <!-- 图像映射 - 修复1: 添加闭合标签 -->
+    <map name="tourMap">  <!-- 修复2: 名称与usemap一致 -->
+        <!-- 美团展示中心（上海） -->
+        <!-- 修复3: 修正坐标顺序 -->
+        <area shape="rect" coords="71,245,540,314" href="#" alt="美团展示中心位置" 
+              data-lat="31.273255" data-lng="121.527732" data-title="美团综合指挥中心">
+    </map>
+
+    <!-- 地图选择弹窗 -->
+    <div id="map-modal">
+        <span class="close-btn">&times;</span> <!-- 修复4: 添加关闭按钮 -->
+        <h3>选择导航应用</h3>
+        <button class="map-option" data-map="baidu">百度地图</button>
+        <button class="map-option" data-map="gaode">高德地图</button>
+        <button class="map-option" data-map="google">谷歌地图</button>
+    </div>
+
+    <script>
+        // 存储当前点击的位置信息
+        let currentLocation = null;
+
+        // 绑定所有热点区域的点击事件
+        document.querySelectorAll('area').forEach(area => {
+            area.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentLocation = {
+                    lat: this.dataset.lat,
+                    lng: this.dataset.lng,
+                    title: this.dataset.title
+                };
+                document.getElementById('map-modal').style.display = 'block';
+            });
+        });
+
+        // 处理地图选择
+        document.querySelectorAll('.map-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mapType = btn.dataset.map;
+                navigate(mapType);
+            });
+        });
+
+        // 添加关闭功能
+        document.querySelector('.close-btn').addEventListener('click', () => {
+            document.getElementById('map-modal').style.display = 'none';
+        });
+
+        // 导航函数
+        function navigate(mapType) {
+            const { lat, lng, title } = currentLocation;
+            let url = '';
+            
+            switch(mapType) {
+                case 'baidu':
+                    // 百度地图URI (坐标需使用BD09坐标系)
+                    url = `https://api.map.baidu.com/marker?location=${lat},${lng}&title=${encodeURIComponent(title)}&output=html`;
+                    break;
+                case 'gaode':
+                    // 高德地图URI
+                    url = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(title)}`;
+                    break;
+                case 'google':
+                    // 谷歌地图URI
+                    url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                    break;
+            }
+            
+            window.open(url, '_blank');
+            document.getElementById('map-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
